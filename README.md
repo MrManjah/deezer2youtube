@@ -14,7 +14,7 @@ Vous devez créer un projet sur Google Cloud et activer l'API YouTube Data v3. E
 
 Installez les bibliothèques nécessaires avec la commande suivante :
 
-Plain textANTLR4BashCC#CSSCoffeeScriptCMakeDartDjangoDockerEJSErlangGitGoGraphQLGroovyHTMLJavaJavaScriptJSONJSXKotlinLaTeXLessLuaMakefileMarkdownMATLABMarkupObjective-CPerlPHPPowerShell.propertiesProtocol BuffersPythonRRubySass (Sass)Sass (Scss)SchemeSQLShellSwiftSVGTSXTypeScriptWebAssemblyYAMLXML`   pip install requests google-auth-oauthlib google-auth-httplib2 google-auth google-auth-oauthlib google-auth-httplib2 googleapiclient   `
+`   pip install requests google-auth-oauthlib google-auth-httplib2 google-auth google-auth-oauthlib google-auth-httplib2 googleapiclient   `
 
 Configuration
 -------------
@@ -33,8 +33,7 @@ Utilisation
 
 1.  Exécutez le script avec Python :
     
-
-Plain textANTLR4BashCC#CSSCoffeeScriptCMakeDartDjangoDockerEJSErlangGitGoGraphQLGroovyHTMLJavaJavaScriptJSONJSXKotlinLaTeXLessLuaMakefileMarkdownMATLABMarkupObjective-CPerlPHPPowerShell.propertiesProtocol BuffersPythonRRubySass (Sass)Sass (Scss)SchemeSQLShellSwiftSVGTSXTypeScriptWebAssemblyYAMLXML`   python Deezer_To_Youtube.py   `
+`   python Deezer_To_Youtube.py   `
 
 1.  Une fenêtre de connexion OAuth s'ouvrira pour vous permettre d'autoriser l'accès à votre compte YouTube.
     
