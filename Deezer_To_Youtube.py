@@ -4,6 +4,7 @@ import googleapiclient.discovery
 import googleapiclient.errors
 import json
 import time
+import os
 
 # Configuration Deezer
 DEEZER_PLAYLIST_ID = "195667401"
@@ -15,6 +16,19 @@ SCOPES = ["https://www.googleapis.com/auth/youtube.force-ssl"]
 
 # Nom de la playlist YouTube cible
 YOUTUBE_PLAYLIST_TITLE = "Coups de coeur"
+
+# Fichier de correspondance
+MAPPING_FILE = "migrated_tracks.json"
+
+def load_migrated_tracks():
+    if os.path.exists(MAPPING_FILE):
+        with open(MAPPING_FILE, "r", encoding="utf-8") as file:
+            return json.load(file)
+    return {}
+
+def save_migrated_tracks(migrated_tracks):
+    with open(MAPPING_FILE, "w", encoding="utf-8") as file:
+        json.dump(migrated_tracks, file, indent=4)
 
 def get_deezer_tracks():
     tracks = []
@@ -80,15 +94,13 @@ def get_existing_videos(youtube, playlist_id):
             break
     return existing_videos
 
-def search_and_add_tracks(youtube, playlist_id, tracks):
+def search_and_add_tracks(youtube, playlist_id, tracks, migrated_tracks):
     existing_videos = get_existing_videos(youtube, playlist_id)
-    not_found_tracks = []
-    pending_tracks = []
     search_cache = {}
-
+    
     for title, artist in tracks:
         track_key = f"{title} {artist}"
-        if any(title in video or track_key in video for video in existing_videos):
+        if track_key in migrated_tracks or any(title in video for video in existing_videos):
             print(f"Déjà présent : {track_key}")
             continue
         
@@ -103,7 +115,6 @@ def search_and_add_tracks(youtube, playlist_id, tracks):
                     search_cache[track_key] = video_id
                 else:
                     print(f"Non trouvé : {track_key}")
-                    not_found_tracks.append(track_key)
                     continue
             
             youtube.playlistItems().insert(
@@ -115,31 +126,22 @@ def search_and_add_tracks(youtube, playlist_id, tracks):
                     }
                 },
             ).execute()
+            
             print(f"Ajouté : {track_key}")
+            migrated_tracks[track_key] = video_id
+            save_migrated_tracks(migrated_tracks)
             time.sleep(2)
         
         except googleapiclient.errors.HttpError as e:
             error_msg = str(e)
             if "quotaExceeded" in error_msg:
-                print("Quota dépassé, enregistrement des titres restants et arrêt du script.")
-                pending_tracks.extend(tracks[tracks.index((title, artist)):])
+                print("Quota dépassé, arrêt du script.")
                 break
             print(f"Erreur lors de l'ajout de {track_key} : {e}")
             time.sleep(5)
 
-    if not_found_tracks:
-        with open("not_found_tracks.txt", "w", encoding="utf-8") as file:
-            for track in not_found_tracks:
-                file.write(track + "\n")
-        print("Liste des titres introuvables sauvegardée dans 'not_found_tracks.txt'")
-    
-    if pending_tracks:
-        with open("pending_tracks.txt", "w", encoding="utf-8") as file:
-            for track in pending_tracks:
-                file.write(track + "\n")
-        print("Liste des titres en attente sauvegardée dans 'pending_tracks.txt', relance demain.")
-
 def main():
+    migrated_tracks = load_migrated_tracks()
     tracks = get_deezer_tracks()
     if not tracks:
         return
@@ -147,7 +149,7 @@ def main():
     playlist_id = get_existing_playlist(youtube)
     if not playlist_id:
         playlist_id = create_youtube_playlist(youtube)
-    search_and_add_tracks(youtube, playlist_id, tracks)
+    search_and_add_tracks(youtube, playlist_id, tracks, migrated_tracks)
     print(f"Import terminé dans la playlist '{YOUTUBE_PLAYLIST_TITLE}' !")
 
 if __name__ == "__main__":
